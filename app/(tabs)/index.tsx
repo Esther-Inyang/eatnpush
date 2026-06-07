@@ -1,10 +1,10 @@
+import { foodsData } from "@/data";
 import { Caveat_400Regular, useFonts } from "@expo-google-fonts/caveat";
 import {
   LobsterTwo_400Regular,
   LobsterTwo_700Bold,
 } from "@expo-google-fonts/lobster-two";
 import { useRouter } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
 import {
   ArrowRight,
   CircleCheck,
@@ -23,21 +23,20 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { foodsData } from "../../data";
-
-SplashScreen.preventAutoHideAsync();
+import { useCart } from "../cart-context";
 
 export default function Home() {
-  type CartItem = {
-    food: (typeof foodsData)[number];
-    quantity: number;
-  };
-
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-
-  // SplashScreen.preventAutoHideAsync();
+  const [showSplash, setShowSplash] = useState(true);
+  const {
+    cartItems,
+    addToCart,
+    updateQuantity,
+    removeFromCart,
+    cartCount,
+    cartTotal,
+  } = useCart();
 
   const [fontsLoaded, fontError] = useFonts({
     Caveat_400Regular,
@@ -48,53 +47,16 @@ export default function Home() {
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
+      setShowSplash(false);
     }
   }, [fontsLoaded, fontError]);
-
-  if (!fontsLoaded && !fontError) {
-    return null;
-  }
 
   const formatPrice = (amount: number) =>
     `N${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const cartTotal = cartItems.reduce(
-    (sum, item) => sum + item.food.price * item.quantity,
-    0,
-  );
-
-  const addToCart = (food: (typeof foodsData)[number]) => {
-    setCartItems((prev) => {
-      const existing = prev.find((item) => item.food.id === food.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.food.id === food.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item,
-        );
-      }
-      return [...prev, { food, quantity: 1 }];
-    });
-
+  const handleAddToCart = (food: (typeof foodsData)[number]) => {
+    addToCart(food);
     setIsCartModalOpen(true);
-  };
-
-  const updateQuantity = (foodId: number, delta: number) => {
-    setCartItems((prev) =>
-      prev
-        .map((item) =>
-          item.food.id === foodId
-            ? { ...item, quantity: Math.max(item.quantity + delta, 0) }
-            : item,
-        )
-        .filter((item) => item.quantity > 0),
-    );
-  };
-
-  const removeFromCart = (foodId: number) => {
-    setCartItems((prev) => prev.filter((item) => item.food.id !== foodId));
   };
 
   const closeCartModal = () => {
@@ -118,27 +80,53 @@ export default function Home() {
     router.push("/");
   };
 
+  if (showSplash) {
+    return (
+      <View className="flex-1 items-center justify-center bg-[#fcf9f7]">
+        <View className="w-[85%] bg-white rounded-3xl p-6 items-center shadow-lg shadow-[#f1e7e0]">
+          <View className="w-20 h-20 rounded-full bg-[#fde6dd] items-center justify-center mb-4">
+            <Text
+              className="text-2xl"
+              style={{ color: "#c73a0f", fontWeight: "700" }}
+            >
+              🍽
+            </Text>
+          </View>
+          <Text className="text-3xl font-bold text-[#c73a0f] font-LobsterTwo_700Bold">
+            Meal 4 Devs
+          </Text>
+          <Text className="text-sm mt-2 text-center text-[#6f6e6e] font-LobsterTwo_700Bold">
+            Delicious and nutritious meals for Nerdy Developers
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <ScrollView className="bg-[#fcf9f7] p-5">
       <View className="w-full rounded-xl flex items-center justify-center mb-7">
         <View>
-          <View className="w-full p-3 flex flex-row justify-end">
-            <Text className="text-xs mb-4 font-bold text-[#260f08] font-LobsterTwo_700Bold">
-              {"Eat 'n' Push"}
-            </Text>
-          </View>
-          <View className="w-full px-5">
-            <View className="flex-row items-center justify-between">
-              <View>
-                <Text className="text-4xl mb-1 font-bold text-[#260f08] font-LobsterTwo_700Bold">
-                  Meal 4 Devs
-                </Text>
-                <Text className="text-sm mb-4 font-light text-[#6f6e6e] font-LobsterTwo_700Bold">
-                  Delicious and nutritious meals for Nerdy Developers
-                </Text>
+          <View className="w-full p-3">
+            <View className="flex flex-row items-center justify-between mb-6">
+              <View className="flex-row items-center space-x-3">
+                <View className="flex-row items-center space-x-2">
+                  <View className="w-8 h-8 rounded-full bg-[#fde6dd] items-center justify-center">
+                    <Text
+                      className="text-base"
+                      style={{ color: "#c73a0f", fontWeight: "700" }}
+                    >
+                      🍽
+                    </Text>
+                  </View>
+                  <Text className="text-xs font-bold text-[#260f08] font-LobsterTwo_700Bold">
+                    {"Eat 'n' Push"}
+                  </Text>
+                </View>
               </View>
+
               <TouchableOpacity onPress={() => setIsCartModalOpen(true)}>
-                <View className="relative w-8 h-8 pr-2 mb-4 items-center justify-center">
+                <View className="relative w-8 h-8 pr-2 items-center justify-center">
                   <ShoppingCart color="#c73a0f" size={24} />
                   <View
                     className="absolute bg-[#c73a0f] rounded-full items-center justify-center border-2 border-white"
@@ -162,7 +150,13 @@ export default function Home() {
             </View>
           </View>
 
-          <View className="pt-10  flex flex-col gap-4 bg-white p-3">
+          <View className="w-full flex flex-row justify-center mb-6 px-3">
+            <Text className="text-2xl mb-1 font-bold text-[#260f08] font-LobsterTwo_700Bold">
+              Meal 4 Devs
+            </Text>
+          </View>
+
+          <View className="flex flex-col gap-4 bg-white p-3">
             {foodsData.map((food) => {
               const { id, image, name, category, price } = food;
               return (
@@ -183,7 +177,7 @@ export default function Home() {
                     </View>
                     <View className="w-full flex flex-row justify-center">
                       <TouchableOpacity
-                        onPress={() => addToCart(food)}
+                        onPress={() => handleAddToCart(food)}
                         className="-mt-3 px-6 py-3 flex flex-row items-center justify-center gap-1 text-sm rounded-full border border-[#c9aea6] bg-[#fcf9f7] font-bold cursor-pointer"
                       >
                         <View>
@@ -304,7 +298,17 @@ export default function Home() {
                     </Text>
                   </View>
 
-                  <View className="mt-8 flex-row items-center justify-center gap-2 rounded-md bg-[#fcf9f7] p-2">
+                  <View className="mt-8 w-full flex flex-row justify-center">
+                    <TouchableOpacity
+                      onPress={handlePlaceOrder}
+                      className="w-fit px-10 py-3 rounded-full bg-[#383838] transition-colors duration-200 ease-linear cursor-pointer"
+                    >
+                      <Text className="text-base font-bold text-white text-center">
+                        Add More
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View className="mt-5 flex-row items-center justify-center gap-2 rounded-md bg-[#fcf9f7] p-2">
                     <Image
                       source={require("../../assets/images/icon-carbon-neutral.png")}
                       style={{ width: 25, height: 25 }}
@@ -316,29 +320,33 @@ export default function Home() {
                     </Text>
                   </View>
 
-                  <TouchableOpacity
-                    onPress={
-                      cartItems.length === 0
-                        ? handlePlaceOrder
-                        : openConfirmModal
-                    }
-                    className="w-full mt-10 px-6 py-3 rounded-full bg-[#c73a0f] transition-colors duration-200 ease-linear cursor-pointer"
-                  >
-                    <View className="flex-row items-center justify-center gap-2">
+                  <View className="w-full mt-10 pr-5 flex flex-row items-center justify-between gap-5">
+                    <TouchableOpacity
+                      onPress={openConfirmModal}
+                      className="basis-[50%] px-6 py-3 rounded-full bg-[#c73a0f] transition-colors duration-200 ease-linear cursor-pointer"
+                    >
+                      <View className="flex-row items-center justify-center gap-2">
+                        <Text className="text-base font-bold text-white text-center">
+                          Place Order
+                        </Text>
+                        <Text>
+                          <ArrowRight
+                            color="#ffffff"
+                            size={20}
+                            className="mt-1"
+                          />
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={handlePlaceOrder}
+                      className="basis-[50%] px-6 py-3 rounded-full bg-[#c73a0f] transition-colors duration-200 ease-linear cursor-pointer"
+                    >
                       <Text className="text-base font-bold text-white text-center">
-                        {cartItems.length === 0
-                          ? "Place order now"
-                          : "Add more order"}
+                        Cancel
                       </Text>
-                      <Text>
-                        <ArrowRight
-                          color="#ffffff"
-                          size={20}
-                          className="mt-1"
-                        />
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             </View>
