@@ -6,7 +6,6 @@ import {
 } from "@expo-google-fonts/lobster-two";
 import { useRouter } from "expo-router";
 import {
-  ArrowRight,
   CircleCheck,
   Minus,
   Plus,
@@ -325,16 +324,9 @@ export default function Home() {
                       onPress={openConfirmModal}
                       className="basis-[50%] px-6 py-3 rounded-full bg-[#c73a0f] transition-colors duration-200 ease-linear cursor-pointer"
                     >
-                      <View className="flex-row items-center justify-center gap-2">
+                      <View className="flex-row items-center justify-center">
                         <Text className="text-base font-bold text-white text-center">
                           Place Order
-                        </Text>
-                        <Text>
-                          <ArrowRight
-                            color="#ffffff"
-                            size={20}
-                            className="mt-1"
-                          />
                         </Text>
                       </View>
                     </TouchableOpacity>

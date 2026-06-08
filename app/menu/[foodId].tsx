@@ -3,8 +3,22 @@ import { foodsData } from "@/data";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
+function BackButton() {
+  const router = useRouter();
+  return (
+    <TouchableOpacity
+      onPress={() => router.back()}
+      className="px-3"
+      accessibilityLabel="Go back"
+    >
+      <Text className="text-[#c73a0f] font-bold">Back</Text>
+    </TouchableOpacity>
+  );
+}
+
 export const options = {
-  title: "Dish Details",
+  // hide the native header so we can render a custom one (prevents web from showing the route path)
+  headerShown: false,
 };
 
 export default function FoodDetail() {
@@ -13,9 +27,24 @@ export default function FoodDetail() {
   const food = foodsData.find((item) => item.id === Number(foodId));
   const { addToCart } = useCart();
 
+  function Header() {
+    return (
+      <View className="flex-row items-center justify-start px-4 py-3 bg-transparent">
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="mr-3 p-2"
+          accessibilityLabel="Go back"
+        >
+          <Text className="text-2xl text-[#c73a0f]">‹</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   if (!food) {
     return (
       <ScrollView className="bg-[#fcf9f7] p-5">
+        <Header />
         <View className="rounded-3xl bg-white p-6 items-center">
           <Text className="text-2xl font-bold text-[#260f08] mb-2">
             Item not found
@@ -44,6 +73,7 @@ export default function FoodDetail() {
 
   return (
     <ScrollView className="bg-[#fcf9f7] p-5">
+      <Header />
       <Text className="text-sm uppercase tracking-[0.3em] mb-2 text-[#c73a0f] font-bold">
         Dish Details
       </Text>
@@ -58,8 +88,7 @@ export default function FoodDetail() {
         <Image
           source={food.image.mobile}
           alt={food.name}
-          className="h-72 w-full"
-          style={{ objectFit: "cover" }}
+          style={{ width: "100%", height: 288, objectFit: "cover" }}
         />
       </View>
 
